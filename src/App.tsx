@@ -4,7 +4,8 @@ import { useProductsPageState } from "./features/products/useProductsPageState";
 import { ProductsToolbar } from "./components/ProductsToolbar";
 import { ProductCard } from "./components/ProductCard";
 import { ProductModal } from "./components/ProductModal";
-import { ProductGridSkeleton } from "./components/ProductGridSkeleton";
+// import { ProductGridSkeleton } from "./components/ProductGridSkeleton";
+import { FullPageLoader } from "./components/FullPageLoader";
 import type { Product } from "./types/product";
 
 const LIMIT = 12;
@@ -93,9 +94,9 @@ function App() {
       arr = arr.filter((p) => p.category === ui.category);
     if (ui.brand !== "all") arr = arr.filter((p) => p.brand === ui.brand);
     if (ui.priceMin !== undefined)
-      arr = arr.filter((p) => p.price >= ui.priceMin!);
+      arr = arr.filter((p) => p.price >= (ui.priceMin ?? 0));
     if (ui.priceMax !== undefined)
-      arr = arr.filter((p) => p.price <= ui.priceMax!);
+      arr = arr.filter((p) => p.price <= (ui.priceMax ?? 0));
 
     return arr;
   }, [
@@ -108,7 +109,12 @@ function App() {
   ]);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-gray-100 text-gray-900 dark:bg-slate-950 dark:text-slate-100 p-6">
+      {isFetching && !isLoading && (
+        <div className="fixed top-0 left-0 h-1 w-full bg-gray-200 dark:bg-slate-800 z-50">
+          <div className="h-full w-full bg-gray-900 dark:bg-slate-100 animate-pulse" />
+        </div>
+      )}
       <ProductsToolbar
         search={ui.search}
         onSearchChange={(v) => setUi((p) => ({ ...p, search: v }))}
@@ -142,7 +148,7 @@ function App() {
 
       {/* Counter */}
       {!isLoading && !isError ? (
-        <div className="mb-6 text-sm text-gray-600">
+        <div className="mb-6 text-sm text-gray-600 dark:text-slate-300">
           Showing{" "}
           <span className="font-semibold">{filteredProducts.length}</span> of{" "}
           <span className="font-semibold">{sortedProducts.length}</span>
@@ -152,37 +158,39 @@ function App() {
       )}
 
       {isLoading ? (
-        <ProductGridSkeleton count={LIMIT} />
+        <FullPageLoader />
       ) : isError ? (
-        <div className="bg-white p-8 rounded-xl shadow">
+        <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow border border-gray-100 dark:border-slate-800">
           <h2 className="text-lg font-bold">Something went wrong</h2>
-          <p className="text-gray-600 mt-2">
+          <p className="text-gray-600 dark:text-slate-300 mt-2">
             Couldn’t load products. Please try again.
           </p>
           <button
             onClick={() => refetch()}
-            className="mt-4 px-4 py-2 rounded-xl bg-gray-900 text-white font-semibold hover:bg-gray-800 transition"
+            className="mt-4 px-4 py-2 rounded-xl bg-gray-900 text-white font-semibold hover:bg-gray-800 transition
+                       dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
           >
             Retry
           </button>
         </div>
       ) : filteredProducts.length === 0 ? (
-        <div className="bg-white p-10 rounded-xl shadow text-center">
+        <div className="bg-white dark:bg-slate-900 p-10 rounded-xl shadow text-center border border-gray-100 dark:border-slate-800">
           <div className="text-3xl">🧺</div>
           <h2 className="text-lg font-bold mt-2">No products found</h2>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 dark:text-slate-300 mt-1">
             Try changing your search or filters.
           </p>
 
           <button
             onClick={clearAll}
-            className="mt-4 px-4 py-2 rounded-xl bg-gray-900 text-white font-semibold hover:bg-gray-800 transition"
+            className="mt-4 px-4 py-2 rounded-xl bg-gray-900 text-white font-semibold hover:bg-gray-800 transition
+                       dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
           >
             Clear filters
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-fr">
           {filteredProducts.map((product) => (
             <ProductCard
               key={product.id}
