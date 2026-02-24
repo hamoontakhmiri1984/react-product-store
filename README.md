@@ -4,11 +4,11 @@ This project is implemented as a technical assessment for a React Frontend Devel
 
 ## 🚀 Live Demo
 
-https://your-vercel-link.vercel.app
+https://react-product-store-zeta.vercel.app/
 
 ## 📦 GitHub Repository
 
-https://github.com/your-username/react-product-store
+https://github.com/hamoontakhmiri1984/react-product-store
 
 ---
 
