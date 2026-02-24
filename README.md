@@ -1,32 +1,49 @@
-# 🛍 React Product Store
+# React Product Store
 
-A modern product listing application built with React, TypeScript, React Query and Tailwind CSS.
+This project is implemented as a technical assessment for a React Frontend Developer position.
 
-## 🚀 Features
+## 🚀 Live Demo
 
-- Server-side pagination
-- Search with debounce
-- Sorting (Newest, Price, Rating)
-- Category filter
-- Brand filter
-- Price range filter
-- In-stock toggle
-- URL synchronization
-- Skeleton loading
-- Error handling with retry
-- Product modal with image gallery
-- Fully type-safe (no any)
+https://your-vercel-link.vercel.app
 
-## 🧱 Tech Stack
+## 📦 GitHub Repository
 
-- React
-- TypeScript
-- Vite
-- React Query
-- Axios
-- Tailwind CSS
+https://github.com/your-username/react-product-store
 
-## 📦 Installation
+---
+
+## 🛠 Tech Stack
+
+- React + TypeScript
+- Tailwind CSS (v4)
+- TanStack React Query
+- Custom Hooks
+- Responsive Grid Layout
+- Dark / Light Mode Toggle
+
+---
+
+## ✨ Features
+
+- 🔍 Real-time search with debounce
+- 📦 Responsive product grid
+- 🔄 Pagination
+- ↕ Sorting (Newest, Price Low/High, Rating)
+- 🎯 Filters (Category, Brand, Price Range, In Stock)
+- 🪟 Product details modal
+- 🌙 Dark mode toggle
+- ⏳ Loading and error handling with React Query
+
+---
+
+## 📡 API
+
+Data is fetched from:
+https://dummyjson.com/docs/products
+
+---
+
+## ▶ Run Locally
 
 ```bash
 npm install
