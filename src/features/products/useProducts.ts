@@ -12,3 +12,4 @@ export const useProducts = (params: FetchProductsParams) => {
     staleTime: 60_000,
   });
 };
+

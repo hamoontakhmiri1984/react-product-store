@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 
-export type SortKey = "newest" | "price_asc" | "price_desc" | "rating_desc";
+const LIMIT = 16;
+
+export type SortKey =
+  | "newest"
+  | "price_asc"
+  | "price_desc"
+  | "rating_desc"
+  | "discount_desc";
 
 export type PageState = {
   page: number;
@@ -10,8 +17,8 @@ export type PageState = {
 
   sort: SortKey;
 
-  category: string;
-  brand: string;
+  categories: string[];
+  brands: string[];
   inStockOnly: boolean;
 
   priceMin?: number;
@@ -27,6 +34,7 @@ function parseSort(v: string | null): SortKey {
     v === "price_asc" ||
     v === "price_desc" ||
     v === "rating_desc" ||
+    v === "discount_desc" ||
     v === "newest"
   )
     return v;
@@ -39,9 +47,14 @@ function parsePage(v: string | null) {
 }
 
 function parseNum(v: string | null): number | undefined {
-  if (v === null || v.trim() === "") return undefined;
+  if (!v) return undefined;
   const n = Number(v);
   return Number.isFinite(n) ? n : undefined;
+}
+
+function parseArray(v: string | null): string[] {
+  if (!v) return [];
+  return v.split(",").filter(Boolean);
 }
 
 function getInitialStateFromUrl(): PageState {
@@ -50,8 +63,9 @@ function getInitialStateFromUrl(): PageState {
   const page = parsePage(sp.get("page"));
   const q = sp.get("q") ?? "";
   const sort = parseSort(sp.get("sort"));
-  const category = sp.get("cat") ?? "all";
-  const brand = sp.get("brand") ?? "all";
+
+  const categories = parseArray(sp.get("cat"));
+  const brands = parseArray(sp.get("brand"));
   const inStockOnly = parseBool(sp.get("stock"));
 
   const priceMin = parseNum(sp.get("pmin"));
@@ -62,8 +76,8 @@ function getInitialStateFromUrl(): PageState {
     search: q,
     debouncedSearch: q,
     sort,
-    category,
-    brand,
+    categories,
+    brands,
     inStockOnly,
     priceMin,
     priceMax,
@@ -73,34 +87,44 @@ function getInitialStateFromUrl(): PageState {
 export function useProductsPageState() {
   const [ui, setUi] = useState<PageState>(() => getInitialStateFromUrl());
 
-  // debounce + reset page + reset some filters on search change
+  const toggleCategory = (category: string) => {
+    setUi((prev) => ({
+      ...prev,
+      page: 1,
+      categories: prev.categories.includes(category)
+        ? prev.categories.filter((c) => c !== category)
+        : [...prev.categories, category],
+    }));
+  };
+
+  const toggleBrand = (brand: string) => {
+    setUi((prev) => ({
+      ...prev,
+      page: 1,
+      brands: prev.brands.includes(brand)
+        ? prev.brands.filter((b) => b !== brand)
+        : [...prev.brands, brand],
+    }));
+  };
+
+  const setInStockOnly = (value: boolean) => {
+    setUi((prev) => ({
+      ...prev,
+      page: 1,
+      inStockOnly: value,
+    }));
+  };
+
+  // debounce search
   useEffect(() => {
     const t = setTimeout(() => {
       const nextQ = ui.search.trim();
 
-      setUi((prev) => {
-        // اگر تغییری نیست برنگردون رندر اضافه
-        if (
-          prev.debouncedSearch === nextQ &&
-          prev.page === 1 &&
-          prev.category === "all" &&
-          prev.brand === "all" &&
-          prev.priceMin === undefined &&
-          prev.priceMax === undefined
-        ) {
-          return prev;
-        }
-
-        return {
-          ...prev,
-          debouncedSearch: nextQ,
-          page: 1,
-          category: "all",
-          brand: "all",
-          priceMin: undefined,
-          priceMax: undefined,
-        };
-      });
+      setUi((prev) => ({
+        ...prev,
+        debouncedSearch: nextQ,
+        page: 1,
+      }));
     }, 500);
 
     return () => clearTimeout(t);
@@ -108,31 +132,18 @@ export function useProductsPageState() {
 
   // URL sync
   useEffect(() => {
-    const sp = new URLSearchParams(window.location.search);
+    const sp = new URLSearchParams();
 
     if (ui.page > 1) sp.set("page", String(ui.page));
-    else sp.delete("page");
-
     if (ui.debouncedSearch) sp.set("q", ui.debouncedSearch);
-    else sp.delete("q");
-
     if (ui.sort !== "newest") sp.set("sort", ui.sort);
-    else sp.delete("sort");
 
-    if (ui.category !== "all") sp.set("cat", ui.category);
-    else sp.delete("cat");
-
-    if (ui.brand !== "all") sp.set("brand", ui.brand);
-    else sp.delete("brand");
-
+    if (ui.categories.length) sp.set("cat", ui.categories.join(","));
+    if (ui.brands.length) sp.set("brand", ui.brands.join(","));
     if (ui.inStockOnly) sp.set("stock", "1");
-    else sp.delete("stock");
 
     if (ui.priceMin !== undefined) sp.set("pmin", String(ui.priceMin));
-    else sp.delete("pmin");
-
     if (ui.priceMax !== undefined) sp.set("pmax", String(ui.priceMax));
-    else sp.delete("pmax");
 
     const next = sp.toString();
     const nextUrl = next ? `?${next}` : window.location.pathname;
@@ -140,28 +151,29 @@ export function useProductsPageState() {
     window.history.replaceState(null, "", nextUrl);
   }, [ui]);
 
-  const skip = useMemo(() => (ui.page - 1) * 12, [ui.page]);
+  const skip = useMemo(() => (ui.page - 1) * LIMIT, [ui.page]);
 
   return {
     ui,
     setUi,
-
-    // helper values
     skip,
+    LIMIT,
 
-    // actions (optional helper)
+    toggleCategory,
+    toggleBrand,
+    setInStockOnly,
+
     clearAll: () =>
-      setUi((p) => ({
-        ...p,
+      setUi({
         page: 1,
         search: "",
         debouncedSearch: "",
         sort: "newest",
-        category: "all",
-        brand: "all",
+        categories: [],
+        brands: [],
         inStockOnly: false,
         priceMin: undefined,
         priceMax: undefined,
-      })),
+      }),
   };
 }

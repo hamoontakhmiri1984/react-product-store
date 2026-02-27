@@ -1,20 +1,32 @@
+import { useState, useEffect, useRef } from "react";
 import type { SortKey } from "../features/products/useProductsPageState";
 import { ThemeToggle } from "./ThemeToggle";
+import PriceRangeSlider from "./PriceRangeSlider";
+import { Drawer, useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 type ProductsToolbarProps = {
+  page: number;
+  totalPages: number;
+  canPrev: boolean;
+  canNext: boolean;
+  onPrev: () => void;
+  onNext: () => void;
+  onPageChange: (page: number) => void;
   search: string;
   onSearchChange: (v: string) => void;
+  totalCount: number;
 
   sort: SortKey;
   onSortChange: (v: SortKey) => void;
 
-  category: string;
-  onCategoryChange: (v: string) => void;
   categories: string[];
+  selectedCategories: string[];
+  onToggleCategory: (category: string) => void;
 
-  brand: string;
-  onBrandChange: (v: string) => void;
   brands: string[];
+  selectedBrands: string[];
+  onToggleBrand: (brand: string) => void;
 
   priceMin?: number;
   onPriceMinChange: (v?: number) => void;
@@ -28,12 +40,7 @@ type ProductsToolbarProps = {
   inStockOnly: boolean;
   onToggleInStock: () => void;
 
-  page: number;
-  totalPages: number;
-  canPrev: boolean;
-  canNext: boolean;
-  onPrev: () => void;
-  onNext: () => void;
+  clearAll: () => void;
 
   isLoading: boolean;
   isFetching: boolean;
@@ -43,14 +50,15 @@ export function ProductsToolbar(props: ProductsToolbarProps) {
   const {
     search,
     onSearchChange,
+    totalCount,
     sort,
     onSortChange,
-    category,
-    onCategoryChange,
     categories,
-    brand,
-    onBrandChange,
+    selectedCategories,
+    onToggleCategory,
     brands,
+    selectedBrands,
+    onToggleBrand,
     priceMin,
     onPriceMinChange,
     priceMax,
@@ -59,178 +67,348 @@ export function ProductsToolbar(props: ProductsToolbarProps) {
     priceMaxPlaceholder,
     inStockOnly,
     onToggleInStock,
-    page,
-    totalPages,
-    canPrev,
-    canNext,
-    onPrev,
-    onNext,
-    isLoading,
+    clearAll,
     isFetching,
+    isLoading,
   } = props;
 
-  const inputClass =
-    "px-4 py-2 rounded-xl border shadow bg-white text-gray-900 placeholder:text-gray-400 " +
-    "dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400 dark:border-slate-700";
+  const [open, setOpen] = useState<string | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const selectClass =
-    "px-4 py-2 rounded-xl border shadow bg-white text-gray-900 " +
-    "dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700";
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const chipClass =
-    "flex items-center gap-2 px-3 py-2 rounded-xl border shadow bg-white " +
-    "dark:bg-slate-900 dark:border-slate-700";
+  const toggle = (name: string) =>
+    setOpen((prev) => (prev === name ? null : name));
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (!wrapperRef.current?.contains(e.target as Node)) {
+        setOpen(null);
+      }
+    };
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, []);
+
+  const pill =
+    "px-5 py-2.5 rounded-full border text-sm bg-white shadow-sm flex items-center gap-2 dark:bg-slate-900 dark:border-slate-700";
+
+  const dropdown =
+    "absolute mt-2 w-60 rounded-2xl border bg-white shadow-xl p-4 z-50 dark:bg-slate-900 dark:border-slate-700";
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold dark:text-slate-100">Products</h1>
-        <div className="md:hidden">
+    <div ref={wrapperRef} className="mb-10">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* بالا */}
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-500 dark:text-slate-400">
+            {isFetching && !isLoading && "در حال بروزرسانی..."}
+          </div>
           <ThemeToggle />
         </div>
-      </div>
 
-      <div className="flex items-center gap-3 flex-wrap md:justify-end">
-        <input
-          type="text"
-          placeholder="Search product"
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className={`${inputClass} w-full md:w-80`}
-        />
-
-        <select
-          value={sort}
-          onChange={(e) => onSortChange(e.target.value as SortKey)}
-          className={selectClass}
-        >
-          <option value="newest">Newest</option>
-          <option value="price_asc">Price: Low to High</option>
-          <option value="price_desc">Price: High to Low</option>
-          <option value="rating_desc">Rating</option>
-        </select>
-
-        <select
-          value={category}
-          onChange={(e) => onCategoryChange(e.target.value)}
-          className={selectClass}
-          disabled={isLoading}
-        >
-          {categories.map((c) => (
-            <option key={c} value={c}>
-              {c === "all" ? "Category" : c}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={brand}
-          onChange={(e) => onBrandChange(e.target.value)}
-          className={selectClass}
-          disabled={isLoading}
-        >
-          {brands.map((b) => (
-            <option key={b} value={b}>
-              {b === "all" ? "Brands" : b}
-            </option>
-          ))}
-        </select>
-
-        <div className={chipClass}>
-          <span className="text-sm text-gray-600 dark:text-slate-300">
-            Price
-          </span>
+        {/* سرچ */}
+        <div className="flex items-center gap-6">
+          <div className="text-sm text-gray-600 dark:text-slate-300 whitespace-nowrap">
+            <span className="font-semibold">{totalCount}</span> Products
+          </div>
 
           <input
-            type="number"
-            value={priceMin ?? ""}
-            placeholder={`${priceMinPlaceholder}`}
-            onChange={(e) =>
-              onPriceMinChange(
-                e.target.value === "" ? undefined : Number(e.target.value),
-              )
-            }
-            className="w-20 text-sm border rounded-lg px-2 py-1 bg-white
-                       dark:bg-slate-950 dark:text-slate-100 dark:border-slate-700"
-            disabled={isLoading}
-          />
-
-          <span className="text-gray-400 dark:text-slate-500">-</span>
-
-          <input
-            type="number"
-            value={priceMax ?? ""}
-            placeholder={`${priceMaxPlaceholder}`}
-            onChange={(e) =>
-              onPriceMaxChange(
-                e.target.value === "" ? undefined : Number(e.target.value),
-              )
-            }
-            className="w-20 text-sm border rounded-lg px-2 py-1 bg-white
-                       dark:bg-slate-950 dark:text-slate-100 dark:border-slate-700"
-            disabled={isLoading}
+            type="text"
+            placeholder="Search product"
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="flex-1 px-6 py-3 rounded-full border shadow-sm bg-white dark:bg-slate-900 dark:border-slate-700"
           />
         </div>
 
-        <button
-          type="button"
-          role="switch"
-          aria-checked={inStockOnly}
-          onClick={onToggleInStock}
-          className={`${chipClass} select-none gap-3`}
-        >
-          <span className="text-sm dark:text-slate-200">In Stock</span>
+        {/* فیلترها */}
+        {!isMobile && (
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
+              {/* Sort */}
+              <div className="relative">
+                <button onClick={() => toggle("sort")} className={pill}>
+                  {sortLabel(sort)}
+                  <Arrow open={open === "sort"} />
+                </button>
 
-          <span
-            className={[
-              "relative inline-flex h-6 w-11 items-center rounded-full transition",
-              inStockOnly
-                ? "bg-gray-900 dark:bg-slate-100"
-                : "bg-gray-300 dark:bg-slate-700",
-            ].join(" ")}
-          >
-            <span
-              className={[
-                "inline-block h-5 w-5 transform rounded-full transition",
-                inStockOnly
-                  ? "translate-x-5 bg-white dark:bg-slate-900"
-                  : "translate-x-1 bg-white dark:bg-slate-200",
-              ].join(" ")}
-            />
-          </span>
-        </button>
+                {open === "sort" && (
+                  <div className={dropdown}>
+                    {[
+                      { value: "newest", label: "Newest" },
+                      { value: "price_asc", label: "Price: Low to High" },
+                      { value: "price_desc", label: "Price: High to Low" },
+                      { value: "rating_desc", label: "Rating" },
+                      { value: "discount_desc", label: "Most Discount" },
+                    ].map((item) => (
+                      <button
+                        key={item.value}
+                        onClick={() => {
+                          onSortChange(item.value as SortKey);
+                          setOpen(null);
+                        }}
+                        className="block w-full text-left py-2 text-sm hover:font-semibold"
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-        <button
-          className="px-4 py-2 rounded-xl bg-white shadow border border-gray-200 disabled:opacity-50
-                     dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
-          onClick={onPrev}
-          disabled={isLoading || !canPrev}
-        >
-          Prev
-        </button>
+              {/* Category */}
+              <div className="relative">
+                <button onClick={() => toggle("cat")} className={pill}>
+                  Category
+                  <Arrow open={open === "cat"} />
+                </button>
 
-        <div className="text-sm text-gray-600 dark:text-slate-300 whitespace-nowrap">
-          Page <span className="font-semibold">{page}</span> / {totalPages}
-          {isFetching && !isLoading ? (
-            <span className="ml-2 text-gray-400 dark:text-slate-400">
-              • Updating…
-            </span>
-          ) : null}
-        </div>
+                {open === "cat" && (
+                  <div className={dropdown}>
+                    {categories.map((c) => (
+                      <label key={c} className="flex gap-2 text-sm mb-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedCategories.includes(c)}
+                          onChange={() => onToggleCategory(c)}
+                        />
+                        {c}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-        <button
-          className="px-4 py-2 rounded-xl bg-white shadow border border-gray-200 disabled:opacity-50
-                     dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
-          onClick={onNext}
-          disabled={isLoading || !canNext}
-        >
-          Next
-        </button>
+              {/* Brand */}
+              <div className="relative">
+                <button onClick={() => toggle("brand")} className={pill}>
+                  Brands
+                  <Arrow open={open === "brand"} />
+                </button>
 
-        <div className="hidden md:block">
-          <ThemeToggle />
-        </div>
+                {open === "brand" && (
+                  <div className={dropdown}>
+                    {brands.map((b) => (
+                      <label key={b} className="flex gap-2 text-sm mb-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedBrands.includes(b)}
+                          onChange={() => onToggleBrand(b)}
+                        />
+                        {b}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Price */}
+              <div className="relative">
+                <button onClick={() => toggle("price")} className={pill}>
+                  Price
+                  <Arrow open={open === "price"} />
+                </button>
+
+                {open === "price" && (
+                  <div className={dropdown + " space-y-3"}>
+                    {/* <input
+                    type="number"
+                    placeholder={`Min (${priceMinPlaceholder})`}
+                    value={priceMin ?? ""}
+                    onChange={(e) =>
+                      onPriceMinChange(
+                        e.target.value === ""
+                          ? undefined
+                          : Number(e.target.value),
+                      )
+                    }
+                    className="w-full px-3 py-2 rounded-lg border text-sm"
+                  /> */}
+                    <PriceRangeSlider
+                      priceMin={priceMin ?? priceMinPlaceholder}
+                      priceMax={priceMax ?? priceMaxPlaceholder}
+                      onPriceMinChange={onPriceMinChange}
+                      onPriceMaxChange={onPriceMaxChange}
+                    />
+                    {/* <input
+                    type="number"
+                    placeholder={`Max (${priceMaxPlaceholder})`}
+                    value={priceMax ?? ""}
+                    onChange={(e) =>
+                      onPriceMaxChange(
+                        e.target.value === ""
+                          ? undefined
+                          : Number(e.target.value),
+                      )
+                    }
+                    className="w-full px-3 py-2 rounded-lg border text-sm"
+                  /> */}
+                  </div>
+                )}
+              </div>
+
+              {/* Clear */}
+              <button
+                onClick={clearAll}
+                className="text-sm text-gray-500 hover:text-black dark:hover:text-white"
+              >
+                Clear filters
+              </button>
+            </div>
+
+            {/* In Stock */}
+            <button
+              type="button"
+              onClick={onToggleInStock}
+              className="flex items-center gap-3"
+            >
+              <span className="text-sm">In Stock</span>
+              <span
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+                  inStockOnly ? "bg-black dark:bg-white" : "bg-gray-300"
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition ${
+                    inStockOnly ? "translate-x-5" : "translate-x-1"
+                  }`}
+                />
+              </span>
+            </button>
+          </div>
+        )}
+        {/* موبایل */}
+        {isMobile && (
+          <>
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="w-full px-6 py-3 rounded-full border bg-white dark:bg-slate-900 dark:border-slate-700"
+            >
+              Filters
+            </button>
+
+            <Drawer
+              anchor="bottom"
+              open={mobileOpen}
+              onClose={() => setMobileOpen(false)}
+              PaperProps={{
+                sx: {
+                  borderTopLeftRadius: 20,
+                  borderTopRightRadius: 20,
+                  p: 3,
+                  maxHeight: "85vh",
+                },
+              }}
+            >
+              <div className="space-y-6 overflow-y-auto">
+                {/* اینجا فقط محتوای dropdown ها رو کپی کن */}
+
+                {/* Sort */}
+                <div>
+                  <div className="font-semibold mb-2">Sort</div>
+                  {[
+                    { value: "newest", label: "Newest" },
+                    { value: "price_asc", label: "Price: Low to High" },
+                    { value: "price_desc", label: "Price: High to Low" },
+                    { value: "rating_desc", label: "Rating" },
+                    { value: "discount_desc", label: "Most Discount" },
+                  ].map((item) => (
+                    <button
+                      key={item.value}
+                      onClick={() => onSortChange(item.value as SortKey)}
+                      className="block w-full text-left py-2 text-sm"
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Category */}
+                <div>
+                  <div className="font-semibold mb-2">Category</div>
+                  {categories.map((c) => (
+                    <label key={c} className="flex gap-2 text-sm mb-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedCategories.includes(c)}
+                        onChange={() => onToggleCategory(c)}
+                      />
+                      {c}
+                    </label>
+                  ))}
+                </div>
+
+                {/* Brand */}
+                <div>
+                  <div className="font-semibold mb-2">Brands</div>
+                  {brands.map((b) => (
+                    <label key={b} className="flex gap-2 text-sm mb-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedBrands.includes(b)}
+                        onChange={() => onToggleBrand(b)}
+                      />
+                      {b}
+                    </label>
+                  ))}
+                </div>
+
+                {/* Price */}
+                <div>
+                  <div className="font-semibold mb-2">Price</div>
+                  <PriceRangeSlider
+                    priceMin={priceMin ?? priceMinPlaceholder}
+                    priceMax={priceMax ?? priceMaxPlaceholder}
+                    onPriceMinChange={onPriceMinChange}
+                    onPriceMaxChange={onPriceMaxChange}
+                  />
+                </div>
+
+                <button
+                  onClick={clearAll}
+                  className="text-sm text-gray-500 hover:text-black dark:hover:text-white"
+                >
+                  Clear filters
+                </button>
+              </div>
+            </Drawer>
+          </>
+        )}
       </div>
     </div>
+  );
+}
+
+function sortLabel(sort: SortKey) {
+  switch (sort) {
+    case "price_asc":
+      return "Price: Low to High";
+    case "price_desc":
+      return "Price: High to Low";
+    case "rating_desc":
+      return "Rating";
+    case "discount_desc":
+      return "Most Discount";
+    default:
+      return "Newest";
+  }
+}
+
+function Arrow({ open }: { open: boolean }) {
+  return (
+    <svg
+      className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`}
+      viewBox="0 0 20 20"
+      fill="currentColor"
+    >
+      <path
+        fillRule="evenodd"
+        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z"
+        clipRule="evenodd"
+      />
+    </svg>
   );
 }

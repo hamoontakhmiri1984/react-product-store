@@ -4,24 +4,33 @@ import type { ProductsResponse } from "../types/product";
 const BASE_URL = "https://dummyjson.com";
 
 export type FetchProductsParams = {
-  limit?: number;
-  skip?: number;
+  limit: number;
+  skip: number;
   q?: string;
+  category?: string;
 };
 
 export const fetchProducts = async (
-  params: FetchProductsParams = {},
+  params: FetchProductsParams,
 ): Promise<ProductsResponse> => {
-  const { limit = 12, skip = 0, q } = params;
+  const { limit, skip, q, category } = params;
 
-  const isSearching = Boolean(q && q.trim().length > 0);
+  let url = `${BASE_URL}/products`;
 
-  const url = isSearching
-    ? `${BASE_URL}/products/search`
-    : `${BASE_URL}/products`;
+  if (q && q.trim()) {
+    url = `${BASE_URL}/products/search`;
+  }
+
+  if (category) {
+    url = `${BASE_URL}/products/category/${category}`;
+  }
 
   const response = await axios.get<ProductsResponse>(url, {
-    params: isSearching ? { q: q!.trim(), limit, skip } : { limit, skip },
+    params: {
+      limit,
+      skip,
+      ...(q ? { q: q.trim() } : {}),
+    },
   });
 
   return response.data;
