@@ -20,6 +20,52 @@ const PriceRangeSlider = ({
     }
   };
 
+  const textFieldSx = {
+    "& .MuiOutlinedInput-root": {
+      backgroundColor: "transparent",
+
+      "& fieldset": {
+        borderColor: "#94a3b8",
+      },
+
+      "&:hover fieldset": {
+        borderColor: "#64748b", // light hover
+      },
+
+      "&.Mui-focused fieldset": {
+        borderColor: "#3b82f6",
+      },
+    },
+
+    ".dark & .MuiOutlinedInput-root": {
+      backgroundColor: "#1e293b", // slate-800
+
+      "& fieldset": {
+        borderColor: "#475569",
+      },
+
+      "&:hover fieldset": {
+        borderColor: "#94a3b8", // softer hover (نه مشکی)
+      },
+
+      "&.Mui-focused fieldset": {
+        borderColor: "#60a5fa",
+      },
+    },
+    "& .MuiInputBase-input": {
+      color: "#000000",
+    },
+    ".dark & .MuiInputBase-input": {
+      color: "#ffffff",
+    },
+    "& .MuiInputLabel-root": {
+      color: "#475569",
+    },
+    ".dark & .MuiInputLabel-root": {
+      color: "#cbd5e1",
+    },
+  };
+
   return (
     <Box sx={{ width: "100%", px: 1 }}>
       <Slider
@@ -40,12 +86,7 @@ const PriceRangeSlider = ({
           type="number"
           value={priceMin}
           onChange={(e) => onPriceMinChange(Number(e.target.value))}
-          sx={{
-            "& .MuiInputBase-input": {
-              color: (theme) =>
-                theme.palette.mode === "dark" ? "#fff" : "#000",
-            },
-          }}
+          sx={textFieldSx}
         />
 
         <TextField
@@ -55,12 +96,7 @@ const PriceRangeSlider = ({
           type="number"
           value={priceMax}
           onChange={(e) => onPriceMaxChange(Number(e.target.value))}
-          sx={{
-            "& .MuiInputBase-input": {
-              color: (theme) =>
-                theme.palette.mode === "dark" ? "#fff" : "#000",
-            },
-          }}
+          sx={textFieldSx}
         />
       </Box>
     </Box>
