@@ -46,75 +46,96 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
           </button>
         </div>
 
-        {/* Items */}
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-4 flex flex-col">
           {items.length === 0 ? (
-            <div className="text-sm text-gray-500 dark:text-slate-400">
-              Your cart is empty
+            /* ✅ Only ONE Empty State */
+            <div className="flex flex-col items-center justify-center h-full text-slate-400">
+              <div className="text-5xl mb-4">🛒</div>
+              <p className="text-sm">Your cart is empty</p>
             </div>
           ) : (
-            items.map((item) => (
-              <div
-                key={item.id}
-                className="flex gap-3 border-b border-gray-100 dark:border-slate-800 pb-3"
-              >
-                <img
-                  src={item.thumbnail}
-                  alt={item.title}
-                  className="h-14 w-14 object-contain rounded-md bg-gray-50 dark:bg-slate-800 p-1"
-                />
+            <div className="flex flex-col gap-4">
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex gap-3 border-b border-gray-100 dark:border-slate-800 pb-3"
+                >
+                  <img
+                    src={item.thumbnail}
+                    alt={item.title}
+                    className="h-14 w-14 object-contain rounded-md bg-gray-50 dark:bg-slate-800 p-1"
+                  />
 
-                <div className="flex-1">
-                  <p className="text-sm font-medium line-clamp-1">
-                    {item.title}
-                  </p>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium line-clamp-1">
+                      {item.title}
+                    </p>
 
-                  {/* Quantity Controls */}
-                  <div className="flex items-center gap-2 mt-2">
-                    <button
-                      onClick={() => decreaseQuantity(item.id)}
-                      className="h-6 w-6 rounded-full
-                      bg-gray-100 dark:bg-slate-800
-                      flex items-center justify-center
-                      hover:bg-gray-200 dark:hover:bg-slate-700
-                      text-xs transition"
-                    >
-                      −
-                    </button>
+                    {/* Quantity Controls */}
+                    <div className="flex items-center gap-2 mt-2">
+                      <button
+                        onClick={() => decreaseQuantity(item.id)}
+                        disabled={item.quantity === 1}
+                        className={`
+                          h-9 w-9
+                          flex items-center justify-center
+                          rounded-full border
+                          border-gray-300 dark:border-slate-600
+                          bg-gray-100 dark:bg-slate-800
+                          text-base leading-none
+                          text-black dark:text-white
+                          transition
+                          ${
+                            item.quantity === 1
+                              ? "opacity-40 cursor-not-allowed"
+                              : "hover:bg-gray-200 dark:hover:bg-slate-700"
+                          }
+                        `}
+                      >
+                        −
+                      </button>
 
-                    <span className="text-sm font-medium w-6 text-center">
-                      {item.quantity}
-                    </span>
+                      <span className="w-6 text-center text-sm font-medium">
+                        {item.quantity}
+                      </span>
 
-                    <button
-                      onClick={() => increaseQuantity(item.id)}
-                      className="h-6 w-6 rounded-full
-                      bg-gray-100 dark:bg-slate-800
-                      flex items-center justify-center
-                      hover:bg-gray-200 dark:hover:bg-slate-700
-                      text-xs transition"
-                    >
-                      +
-                    </button>
+                      <button
+                        onClick={() => increaseQuantity(item.id)}
+                        className="
+                          h-9 w-9
+                          flex items-center justify-center
+                          rounded-full border
+                          border-gray-300 dark:border-slate-600
+                          bg-gray-100 dark:bg-slate-800
+                          text-base leading-none
+                          text-black dark:text-white
+                          hover:bg-gray-200 dark:hover:bg-slate-700
+                          transition
+                        "
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">
+                      ${(item.price * item.quantity).toFixed(2)}
+                    </p>
                   </div>
 
-                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">
-                    ${(item.price * item.quantity).toFixed(2)}
-                  </p>
+                  {/* Remove */}
+                  <button
+                    onClick={() => removeFromCart(item.id)}
+                    className="h-8 w-8 rounded-full
+                    hover:bg-gray-100 dark:hover:bg-slate-800
+                    flex items-center justify-center
+                    text-sm transition"
+                  >
+                    ✕
+                  </button>
                 </div>
-
-                {/* Remove */}
-                <button
-                  onClick={() => removeFromCart(item.id)}
-                  className="h-8 w-8 rounded-full
-                  hover:bg-gray-100 dark:hover:bg-slate-800
-                  flex items-center justify-center
-                  text-sm transition"
-                >
-                  ✕
-                </button>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
 

@@ -74,8 +74,7 @@ export function ProductsToolbar(props: ProductsToolbarProps) {
     isLoading,
     onOpenCart,
   } = props;
-  // const totalItems = useCartStore((state) => state.totalItems());
-  // const totalItems = useCartStore((state) => state.totalItems);
+
   const [open, setOpen] = useState<string | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -101,7 +100,8 @@ export function ProductsToolbar(props: ProductsToolbarProps) {
 
   const dropdown =
     "absolute mt-2 w-60 rounded-2xl border bg-white shadow-xl p-4 z-50 dark:bg-slate-900 dark:border-slate-700";
-  const totalItems = useCartStore((state) => state.totalItems);
+  // const totalItems = useCartStore((state) => state.totalItems);
+  const totalItems = useCartStore((s) => s.totalItems());
   return (
     <div ref={wrapperRef} className="mb-10">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -122,12 +122,22 @@ export function ProductsToolbar(props: ProductsToolbarProps) {
             >
               🛒
               {totalItems > 0 && (
+                // <span
+                //   className="absolute -top-1 -right-1
+                //   min-w-18px h-18px
+                //   px-1 rounded-full
+                //   bg-red-700 text-white
+                //   dark:bg-red-700 dark:text-white
+                //   text-[10px] font-semibold
+                //   flex items-center justify-center"
+                // >
+                //   {totalItems}
+                // </span>
                 <span
                   className="absolute -top-1 -right-1
                   min-w-18px h-18px
                   px-1 rounded-full
                   bg-red-700 text-white
-                  dark:bg-red-700 dark:text-white
                   text-[10px] font-semibold
                   flex items-center justify-center"
                 >
