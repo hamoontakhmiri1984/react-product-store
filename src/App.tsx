@@ -221,7 +221,11 @@ function App() {
       )}
 
       {selected && (
-        <ProductModal product={selected} onClose={() => setSelected(null)} />
+        <ProductModal
+          key={selected.id}
+          product={selected}
+          onClose={() => setSelected(null)}
+        />
       )}
 
       {/* Pagination */}

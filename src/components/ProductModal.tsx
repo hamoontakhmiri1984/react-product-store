@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Product } from "../types/product";
+import { useCartStore } from "../store/useCartStore";
 
 type ProductModalProps = {
   product: Product;
@@ -7,26 +8,28 @@ type ProductModalProps = {
 };
 
 export function ProductModal({ product, onClose }: ProductModalProps) {
+  const addToCart = useCartStore((state) => state.addToCart);
+
   const images = useMemo(() => {
     const all = [product.thumbnail, ...(product.images ?? [])];
     return Array.from(new Set(all));
   }, [product.thumbnail, product.images]);
 
-  const [activeImage, setActiveImage] = useState(images[0]);
+  const [activeImage, setActiveImage] = useState(product.thumbnail);
   const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    setActiveImage(images[0]);
-  }, [images]);
+  // useEffect(() => {
+  //   setActiveImage(product.thumbnail);
+  // }, [product.thumbnail]);
 
   useEffect(() => {
-    const t = window.setTimeout(() => setIsOpen(true), 10);
-    return () => window.clearTimeout(t);
+    const t = setTimeout(() => setIsOpen(true), 10);
+    return () => clearTimeout(t);
   }, []);
 
   const requestClose = () => {
     setIsOpen(false);
-    window.setTimeout(() => onClose(), 200);
+    setTimeout(() => onClose(), 200);
   };
 
   useEffect(() => {
@@ -43,129 +46,139 @@ export function ProductModal({ product, onClose }: ProductModalProps) {
 
   return (
     <div
-      className={[
-        "fixed inset-0 z-50",
-        "bg-black/40 backdrop-blur-[2px]",
-        "transition-opacity duration-200",
-        isOpen ? "opacity-100" : "opacity-0",
-      ].join(" ")}
+      className={`fixed inset-0 z-50 flex items-start md:items-center justify-center
+      p-2 md:p-4 overflow-y-auto
+      bg-black/40 backdrop-blur-[2px]
+      transition-opacity duration-200
+      ${isOpen ? "opacity-100" : "opacity-0"}`}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) requestClose();
       }}
     >
-      {/* container */}
-      <div className="fixed inset-0 flex items-start md:items-center justify-center p-4 overflow-y-auto">
-        <div
-          className={[
-            "w-full max-w-4xl",
-            "bg-white dark:bg-slate-900",
-            "rounded-2xl shadow-2xl",
-            "border border-gray-100 dark:border-slate-800",
-            "transform transition-all duration-200",
-            isOpen
-              ? "opacity-100 translate-y-0 scale-100"
-              : "opacity-0 translate-y-4 scale-[0.98]",
-            "max-h-[95vh] overflow-y-auto",
-          ].join(" ")}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2">
-            {/* Left */}
-            <div className="p-5 md:p-6">
-              <div className="bg-gray-50 dark:bg-slate-800 rounded-2xl p-6 flex items-center justify-center">
-                <img
-                  src={activeImage}
-                  alt={product.title}
-                  className="h-64 md:h-72 w-full object-contain"
-                />
-              </div>
-
-              <div className="mt-4 flex gap-3 flex-wrap">
-                {images.slice(0, 4).map((img) => {
-                  const isActive = img === activeImage;
-                  return (
-                    <button
-                      key={img}
-                      onClick={() => setActiveImage(img)}
-                      className={[
-                        "h-14 w-14 md:h-16 md:w-16 rounded-xl border overflow-hidden",
-                        isActive
-                          ? "border-gray-900 dark:border-slate-200"
-                          : "border-gray-200 dark:border-slate-700",
-                      ].join(" ")}
-                    >
-                      <img
-                        src={img}
-                        alt=""
-                        className="h-full w-full object-contain"
-                      />
-                    </button>
-                  );
-                })}
-              </div>
+      <div
+        className={`w-full
+        max-w-full md:max-w-4xl
+        min-h-[95vh] md:min-h-0
+        max-h-[95vh] overflow-y-auto
+        rounded-none md:rounded-2xl
+        shadow-xl
+        bg-white text-gray-900 border border-gray-100
+        dark:bg-slate-900 dark:text-slate-100 dark:border-slate-800
+        transform transition-all duration-200
+        ${isOpen ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2">
+          {/* LEFT */}
+          <div className="p-4 md:p-6">
+            <div className="bg-gray-50 dark:bg-slate-800 rounded-2xl p-4 md:p-6 flex items-center justify-center">
+              <img
+                src={activeImage}
+                alt={product.title}
+                className="h-52 md:h-72 w-full object-contain"
+              />
             </div>
 
-            {/* Right */}
-            <div className="p-5 md:p-6 border-t md:border-t-0 md:border-l border-gray-100 dark:border-slate-800">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs text-gray-400 dark:text-slate-400">
-                    {product.category}
-                  </p>
-
-                  <h2 className="text-xl md:text-2xl font-bold mt-1">
-                    {product.title}
-                  </h2>
-
-                  <div className="mt-2 text-sm text-gray-600 dark:text-slate-300">
-                    ⭐ {product.rating} · {product.brand}
-                  </div>
-                </div>
-
+            <div className="mt-4 flex gap-3 flex-wrap">
+              {images.slice(0, 4).map((img) => (
                 <button
-                  onClick={requestClose}
-                  className="h-9 w-9 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center justify-center"
+                  key={img}
+                  type="button"
+                  onClick={() => setActiveImage(img)}
+                  className={`h-14 w-14 md:h-16 md:w-16 rounded-xl border overflow-hidden
+                  ${
+                    img === activeImage
+                      ? "border-gray-900 dark:border-slate-200"
+                      : "border-gray-200 dark:border-slate-700"
+                  }`}
                 >
-                  ✕
+                  <img
+                    src={img}
+                    alt=""
+                    className="h-full w-full object-contain"
+                  />
                 </button>
+              ))}
+            </div>
+          </div>
+
+          {/* RIGHT */}
+          <div className="p-4 md:p-6 border-t md:border-t-0 md:border-l border-gray-100 dark:border-slate-800">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs text-gray-400 dark:text-slate-400">
+                  {product.category}
+                </p>
+
+                <h2 className="text-xl md:text-2xl font-bold mt-1">
+                  {product.title}
+                </h2>
+
+                <div className="mt-2 text-sm text-gray-600 dark:text-slate-300">
+                  ⭐ {product.rating} · {product.brand}
+                </div>
               </div>
 
-              <p className="mt-4 text-sm md:text-base text-gray-600 dark:text-slate-300 leading-6">
-                {product.description}
-              </p>
+              <button
+                onClick={requestClose}
+                className="h-9 w-9 md:h-10 md:w-10 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center justify-center"
+              >
+                ✕
+              </button>
+            </div>
 
-              <div className="mt-6 flex items-end gap-3">
-                {product.discountPercentage && (
-                  <span className="text-xs px-2 py-1 rounded-full bg-gray-900 text-white dark:bg-slate-100 dark:text-slate-900">
-                    {Math.round(product.discountPercentage)}%
-                  </span>
-                )}
+            <p className="mt-4 text-sm md:text-base text-gray-600 dark:text-slate-300 leading-6 md:leading-7">
+              {product.description}
+            </p>
 
-                {oldPrice && (
-                  <span className="text-sm line-through text-gray-400">
-                    ${oldPrice}
-                  </span>
-                )}
-
-                <span className="text-2xl md:text-3xl font-bold">
-                  ${product.price}
+            <div className="mt-6 flex items-end gap-3">
+              {product.discountPercentage && (
+                <span className="text-xs px-2 py-1 rounded-full bg-gray-900 text-white dark:bg-slate-100 dark:text-slate-900">
+                  {Math.round(product.discountPercentage)}%
                 </span>
-              </div>
+              )}
 
-              <div className="mt-6 flex gap-3">
-                <button className="flex-1 h-11 md:h-12 rounded-xl bg-gray-900 text-white font-semibold dark:bg-slate-100 dark:text-slate-900">
-                  ADD TO CART
-                </button>
+              {oldPrice && (
+                <span className="text-sm line-through text-gray-400">
+                  ${oldPrice}
+                </span>
+              )}
 
-                <button className="h-11 w-11 md:h-12 md:w-12 rounded-xl border border-gray-200 dark:border-slate-700">
-                  ♡
-                </button>
-              </div>
+              <span className="text-2xl md:text-3xl font-bold">
+                ${product.price}
+              </span>
+            </div>
 
-              <div className="mt-6 text-sm text-gray-600 dark:text-slate-300 space-y-2">
-                <div>🚚 Ships in 2 weeks</div>
-                <div>🛡️ 3 year warranty</div>
-                <div>↩️ 7 day return</div>
-              </div>
+            {/* ACTIONS */}
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addToCart({
+                    id: product.id,
+                    title: product.title,
+                    price: product.price,
+                    thumbnail: product.thumbnail,
+                  });
+                }}
+                className="flex-1 h-11 md:h-12 rounded-xl
+                bg-gray-900 text-white font-semibold
+                hover:bg-gray-800 active:scale-95
+                transition-all duration-200
+                dark:bg-slate-100 dark:text-slate-900
+                dark:hover:bg-slate-200"
+              >
+                ADD TO CART
+              </button>
+
+              <button
+                type="button"
+                className="h-11 w-11 md:h-12 md:w-12 rounded-xl border border-gray-200
+                hover:bg-gray-50 transition
+                dark:border-slate-700 dark:hover:bg-slate-800"
+              >
+                ♡
+              </button>
             </div>
           </div>
         </div>

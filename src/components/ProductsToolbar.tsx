@@ -4,6 +4,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import PriceRangeSlider from "./PriceRangeSlider";
 import { Drawer, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { useCartStore } from "../store/useCartStore";
 
 type ProductsToolbarProps = {
   page: number;
@@ -71,7 +72,8 @@ export function ProductsToolbar(props: ProductsToolbarProps) {
     isFetching,
     isLoading,
   } = props;
-
+  // const totalItems = useCartStore((state) => state.totalItems());
+  const totalItems = useCartStore((state) => state.totalItems);
   const [open, setOpen] = useState<string | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -106,7 +108,20 @@ export function ProductsToolbar(props: ProductsToolbarProps) {
           <div className="text-sm text-gray-500 dark:text-slate-400">
             {isFetching && !isLoading && "در حال بروزرسانی..."}
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-4">
+            {/* Cart Icon */}
+            <div className="relative">
+              <button className="relative">🛒</button>
+
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {totalItems}
+                </span>
+              )}
+            </div>
+
+            <ThemeToggle />
+          </div>
         </div>
 
         {/* سرچ */}
