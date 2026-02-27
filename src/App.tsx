@@ -7,12 +7,14 @@ import { ProductModal } from "./components/ProductModal";
 import { FullPageLoader } from "./components/FullPageLoader";
 import type { Product } from "./types/product";
 import Pagination from "@mui/material/Pagination";
+import { CartDrawer } from "./components/CartDrawer";
 
 const PER_PAGE = 16;
 
 function App() {
   const { ui, setUi, clearAll } = useProductsPageState();
   const [selected, setSelected] = useState<Product | null>(null);
+  const [cartOpen, setCartOpen] = useState(false);
 
   const params = useMemo(
     () => ({
@@ -128,6 +130,7 @@ function App() {
       )}
 
       <ProductsToolbar
+        onOpenCart={() => setCartOpen(true)}
         onPageChange={(newPage) =>
           setUi((prev) => ({ ...prev, page: newPage }))
         }
@@ -250,6 +253,7 @@ function App() {
           />
         </div>
       )}
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
   );
 }

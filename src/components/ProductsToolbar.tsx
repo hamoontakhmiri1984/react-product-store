@@ -45,6 +45,7 @@ type ProductsToolbarProps = {
 
   isLoading: boolean;
   isFetching: boolean;
+  onOpenCart: () => void;
 };
 
 export function ProductsToolbar(props: ProductsToolbarProps) {
@@ -71,9 +72,10 @@ export function ProductsToolbar(props: ProductsToolbarProps) {
     clearAll,
     isFetching,
     isLoading,
+    onOpenCart,
   } = props;
   // const totalItems = useCartStore((state) => state.totalItems());
-  const totalItems = useCartStore((state) => state.totalItems);
+  // const totalItems = useCartStore((state) => state.totalItems);
   const [open, setOpen] = useState<string | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -99,7 +101,7 @@ export function ProductsToolbar(props: ProductsToolbarProps) {
 
   const dropdown =
     "absolute mt-2 w-60 rounded-2xl border bg-white shadow-xl p-4 z-50 dark:bg-slate-900 dark:border-slate-700";
-
+  const totalItems = useCartStore((state) => state.totalItems);
   return (
     <div ref={wrapperRef} className="mb-10">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -108,25 +110,39 @@ export function ProductsToolbar(props: ProductsToolbarProps) {
           <div className="text-sm text-gray-500 dark:text-slate-400">
             {isFetching && !isLoading && "در حال بروزرسانی..."}
           </div>
-          <div className="flex items-center gap-4">
-            {/* Cart Icon */}
-            <div className="relative">
-              <button className="relative">🛒</button>
 
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onOpenCart}
+              className="relative h-10 w-10 rounded-full
+              bg-gray-100 dark:bg-slate-800
+              flex items-center justify-center
+              hover:bg-gray-200 dark:hover:bg-slate-700
+              transition"
+            >
+              🛒
               {totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                <span
+                  className="absolute -top-1 -right-1
+                  min-w-18px h-18px
+                  px-1 rounded-full
+                  bg-red-700 text-white
+                  dark:bg-red-700 dark:text-white
+                  text-[10px] font-semibold
+                  flex items-center justify-center"
+                >
                   {totalItems}
                 </span>
               )}
-            </div>
+            </button>
 
             <ThemeToggle />
           </div>
         </div>
 
         {/* سرچ */}
-        <div className="flex items-center gap-6">
-          <div className="text-sm text-gray-600 dark:text-slate-300 whitespace-nowrap">
+        <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+          <div className="text-sm text-gray-600 dark:text-slate-300">
             <span className="font-semibold">{totalCount}</span> Products
           </div>
 
@@ -135,7 +151,7 @@ export function ProductsToolbar(props: ProductsToolbarProps) {
             placeholder="Search product"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="flex-1 px-6 py-3 rounded-full border shadow-sm bg-white dark:bg-slate-900 dark:border-slate-700"
+            className="w-full md:flex-1 px-6 py-3 rounded-full border shadow-sm bg-white dark:bg-slate-900 dark:border-slate-700"
           />
         </div>
 
