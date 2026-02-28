@@ -1,4 +1,4 @@
-# 🛍️ React Product Store
+# 🛍️ React Product Store - Technical Assessment for React Frontend Developer Position
 
 This project was implemented as a technical assessment for a **React Frontend Developer** position.
 
