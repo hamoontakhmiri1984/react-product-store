@@ -1,4 +1,4 @@
-import type { Product } from "../types/product";
+import type { Product } from "../features/products/types";
 import { useCartStore } from "../store/useCartStore";
 
 type ProductCardProps = {

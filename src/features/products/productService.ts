@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { ProductsResponse } from "../types/product";
+import type { ProductsResponse } from "./types";
 
 const BASE_URL = "https://dummyjson.com";
 
@@ -10,16 +10,13 @@ export type FetchProductsParams = {
   category?: string;
 };
 
-export const fetchProducts = async (
-  params: FetchProductsParams,
-): Promise<ProductsResponse> => {
-  const { limit, skip, q, category } = params;
-
-  let url = `${BASE_URL}/products`;
-
-  if (q && q.trim()) {
-    url = `${BASE_URL}/products/search`;
-  }
+export const fetchProducts = async ({
+  limit,
+  skip,
+  q,
+  category,
+}: FetchProductsParams): Promise<ProductsResponse> => {
+  let url = `${BASE_URL}/products/search`;
 
   if (category) {
     url = `${BASE_URL}/products/category/${category}`;

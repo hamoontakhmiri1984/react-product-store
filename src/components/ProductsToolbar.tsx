@@ -108,7 +108,7 @@ export function ProductsToolbar(props: ProductsToolbarProps) {
         {/* بالا */}
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-500 dark:text-slate-400">
-            {isFetching && !isLoading && "در حال بروزرسانی..."}
+            {isFetching && !isLoading && "Loading..."}
           </div>
 
           <div className="flex items-center gap-3">
@@ -307,15 +307,26 @@ export function ProductsToolbar(props: ProductsToolbarProps) {
               className="flex items-center gap-3"
             >
               <span className="text-sm">In Stock</span>
+
               <span
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-                  inStockOnly ? "bg-black dark:bg-white" : "bg-gray-300"
-                }`}
+                className={`
+      relative inline-flex h-6 w-11 items-center
+      rounded-full transition border
+      ${
+        inStockOnly
+          ? "bg-black border-black dark:bg-white dark:border-white"
+          : "bg-gray-300 border-gray-300 dark:bg-slate-700 dark:border-slate-500"
+      }
+    `}
               >
                 <span
-                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition ${
-                    inStockOnly ? "translate-x-5" : "translate-x-1"
-                  }`}
+                  className={`
+        inline-block h-5 w-5 transform rounded-full
+        bg-white dark:bg-slate-950
+        border border-black/10 dark:border-white/10
+        transition
+        ${inStockOnly ? "translate-x-5" : "translate-x-1"}
+      `}
                 />
               </span>
             </button>
