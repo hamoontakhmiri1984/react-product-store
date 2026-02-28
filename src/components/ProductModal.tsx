@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Product } from "../features/products/types";
 import { useCartStore } from "../store/useCartStore";
 
@@ -18,30 +18,51 @@ export function ProductModal({ product, onClose }: ProductModalProps) {
   const [activeImage, setActiveImage] = useState(product.thumbnail);
   const [isOpen, setIsOpen] = useState(false);
 
+  // Reset image when product changes
   // useEffect(() => {
   //   setActiveImage(product.thumbnail);
   // }, [product.thumbnail]);
 
+  // Animate in
   useEffect(() => {
-    const t = setTimeout(() => setIsOpen(true), 10);
-    return () => clearTimeout(t);
+    const t = window.setTimeout(() => setIsOpen(true), 10);
+    return () => window.clearTimeout(t);
   }, []);
 
-  const requestClose = () => {
-    setIsOpen(false);
-    setTimeout(() => onClose(), 200);
-  };
+  // Lock body scroll
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
 
+  const requestClose = useCallback(() => {
+    setIsOpen(false);
+    window.setTimeout(onClose, 200);
+  }, [onClose]);
+
+  // Escape key
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") requestClose();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [requestClose]);
+
+  const priceFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }),
+    [],
+  );
 
   const oldPrice = product.discountPercentage
-    ? (product.price / (1 - product.discountPercentage / 100)).toFixed(1)
+    ? product.price / (1 - product.discountPercentage / 100)
     : null;
 
   return (
@@ -79,25 +100,30 @@ export function ProductModal({ product, onClose }: ProductModalProps) {
             </div>
 
             <div className="mt-4 flex gap-3 flex-wrap">
-              {images.slice(0, 4).map((img) => (
-                <button
-                  key={img}
-                  type="button"
-                  onClick={() => setActiveImage(img)}
-                  className={`h-14 w-14 md:h-16 md:w-16 rounded-xl border overflow-hidden
-                  ${
-                    img === activeImage
-                      ? "border-gray-900 dark:border-slate-200"
-                      : "border-gray-200 dark:border-slate-700"
-                  }`}
-                >
-                  <img
-                    src={img}
-                    alt=""
-                    className="h-full w-full object-contain"
-                  />
-                </button>
-              ))}
+              {images.slice(0, 4).map((img) => {
+                const active = img === activeImage;
+                return (
+                  <button
+                    key={img}
+                    type="button"
+                    onClick={() => setActiveImage(img)}
+                    aria-label="Select image"
+                    className={`h-14 w-14 md:h-16 md:w-16 rounded-xl overflow-hidden
+                      border transition
+                      ${
+                        active
+                          ? "ring-2 ring-gray-900 dark:ring-slate-200 border-transparent"
+                          : "border-gray-200 dark:border-slate-700"
+                      }`}
+                  >
+                    <img
+                      src={img}
+                      alt=""
+                      className="h-full w-full object-contain"
+                    />
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -119,8 +145,13 @@ export function ProductModal({ product, onClose }: ProductModalProps) {
               </div>
 
               <button
+                type="button"
                 onClick={requestClose}
-                className="h-9 w-9 md:h-10 md:w-10 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center justify-center"
+                aria-label="Close"
+                className="h-9 w-9 md:h-10 md:w-10 rounded-full
+                hover:bg-gray-100 dark:hover:bg-slate-800
+                flex items-center justify-center
+                focus-visible:ring-2 focus-visible:ring-gray-400"
               >
                 ✕
               </button>
@@ -139,12 +170,12 @@ export function ProductModal({ product, onClose }: ProductModalProps) {
 
               {oldPrice && (
                 <span className="text-sm line-through text-gray-400">
-                  ${oldPrice}
+                  {priceFormatter.format(oldPrice)}
                 </span>
               )}
 
               <span className="text-2xl md:text-3xl font-bold">
-                ${product.price}
+                {priceFormatter.format(product.price)}
               </span>
             </div>
 
@@ -152,30 +183,32 @@ export function ProductModal({ product, onClose }: ProductModalProps) {
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
+                onClick={() =>
                   addToCart({
                     id: product.id,
                     title: product.title,
                     price: product.price,
                     thumbnail: product.thumbnail,
-                  });
-                }}
+                  })
+                }
                 className="flex-1 h-11 md:h-12 rounded-xl
                 bg-gray-900 text-white font-semibold
                 hover:bg-gray-800 active:scale-95
                 transition-all duration-200
                 dark:bg-slate-100 dark:text-slate-900
-                dark:hover:bg-slate-200"
+                dark:hover:bg-slate-200
+                focus-visible:ring-2 focus-visible:ring-gray-400"
               >
                 ADD TO CART
               </button>
 
               <button
                 type="button"
+                aria-label="Add to favorites"
                 className="h-11 w-11 md:h-12 md:w-12 rounded-xl border border-gray-200
                 hover:bg-gray-50 transition
-                dark:border-slate-700 dark:hover:bg-slate-800"
+                dark:border-slate-700 dark:hover:bg-slate-800
+                focus-visible:ring-2 focus-visible:ring-gray-400"
               >
                 ♡
               </button>

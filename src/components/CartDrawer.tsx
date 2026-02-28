@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useCartStore } from "../store/useCartStore";
+import { useCartStore, selectTotalPrice } from "../store/useCartStore";
 
 type CartDrawerProps = {
   open: boolean;
@@ -7,15 +7,12 @@ type CartDrawerProps = {
 };
 
 export function CartDrawer({ open, onClose }: CartDrawerProps) {
-  const items = useCartStore((state) => state.items);
-  const increaseQuantity = useCartStore((state) => state.increaseQuantity);
-  const decreaseQuantity = useCartStore((state) => state.decreaseQuantity);
-  const removeFromCart = useCartStore((state) => state.removeFromCart);
+  const items = useCartStore((s) => s.items);
+  const increaseQuantity = useCartStore((s) => s.increaseQuantity);
+  const decreaseQuantity = useCartStore((s) => s.decreaseQuantity);
+  const removeFromCart = useCartStore((s) => s.removeFromCart);
 
-  const totalPrice = useCartStore((state) =>
-    state.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-  );
-
+  const totalPrice = useCartStore(selectTotalPrice);
   return (
     <>
       {/* Overlay */}
@@ -41,6 +38,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
           <button
             onClick={onClose}
             className="h-9 w-9 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center justify-center"
+            aria-label="Close cart"
           >
             <X size={18} />
           </button>
@@ -49,7 +47,6 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 flex flex-col">
           {items.length === 0 ? (
-            /* ✅ Only ONE Empty State */
             <div className="flex flex-col items-center justify-center h-full text-slate-400">
               <div className="text-5xl mb-4">🛒</div>
               <p className="text-sm">Your cart is empty</p>
@@ -77,14 +74,12 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
                       <button
                         onClick={() => decreaseQuantity(item.id)}
                         disabled={item.quantity === 1}
+                        aria-label="Decrease quantity"
                         className={`
-                          h-9 w-9
-                          flex items-center justify-center
-                          rounded-full border
+                          h-9 w-9 flex items-center justify-center rounded-full border
                           border-gray-300 dark:border-slate-600
                           bg-gray-100 dark:bg-slate-800
-                          text-base leading-none
-                          text-black dark:text-white
+                          text-base leading-none text-black dark:text-white
                           transition
                           ${
                             item.quantity === 1
@@ -102,14 +97,12 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
 
                       <button
                         onClick={() => increaseQuantity(item.id)}
+                        aria-label="Increase quantity"
                         className="
-                          h-9 w-9
-                          flex items-center justify-center
-                          rounded-full border
+                          h-9 w-9 flex items-center justify-center rounded-full border
                           border-gray-300 dark:border-slate-600
                           bg-gray-100 dark:bg-slate-800
-                          text-base leading-none
-                          text-black dark:text-white
+                          text-base leading-none text-black dark:text-white
                           hover:bg-gray-200 dark:hover:bg-slate-700
                           transition
                         "
@@ -126,10 +119,8 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
                   {/* Remove */}
                   <button
                     onClick={() => removeFromCart(item.id)}
-                    className="h-8 w-8 rounded-full
-                    hover:bg-gray-100 dark:hover:bg-slate-800
-                    flex items-center justify-center
-                    text-sm transition"
+                    aria-label="Remove item"
+                    className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center justify-center text-sm transition"
                   >
                     ✕
                   </button>
@@ -152,8 +143,8 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
             </div>
 
             <button
-              className="w-full h-11 rounded-xl
-              bg-gray-900 text-white
+              type="button"
+              className="w-full h-11 rounded-xl bg-gray-900 text-white
               dark:bg-slate-100 dark:text-slate-900
               font-semibold hover:opacity-90 transition"
             >

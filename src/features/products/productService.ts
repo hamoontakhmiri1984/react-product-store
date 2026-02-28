@@ -16,19 +16,20 @@ export const fetchProducts = async ({
   q,
   category,
 }: FetchProductsParams): Promise<ProductsResponse> => {
-  let url = `${BASE_URL}/products/search`;
+  const trimmedQuery = q?.trim();
 
-  if (category) {
-    url = `${BASE_URL}/products/category/${category}`;
-  }
+  const url = trimmedQuery
+    ? `${BASE_URL}/products/search`
+    : category
+      ? `${BASE_URL}/products/category/${encodeURIComponent(category)}`
+      : `${BASE_URL}/products`;
 
-  const response = await axios.get<ProductsResponse>(url, {
-    params: {
-      limit,
-      skip,
-      ...(q ? { q: q.trim() } : {}),
-    },
-  });
+  const params = {
+    limit,
+    skip,
+    ...(trimmedQuery ? { q: trimmedQuery } : {}),
+  };
 
-  return response.data;
+  const { data } = await axios.get<ProductsResponse>(url, { params });
+  return data;
 };

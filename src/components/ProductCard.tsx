@@ -9,6 +9,13 @@ type ProductCardProps = {
 export function ProductCard({ product, onClick }: ProductCardProps) {
   const addToCart = useCartStore((state) => state.addToCart);
 
+  const priceText = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(product.price);
+
+  const clickable = Boolean(onClick);
+
   return (
     <div
       className="rounded-xl shadow hover:shadow-md transition text-left overflow-hidden flex flex-col h-full
@@ -18,8 +25,10 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
       {/* clickable area */}
       <button
         type="button"
-        onClick={() => onClick?.(product)}
-        className="flex flex-col flex-1 text-left"
+        onClick={clickable ? () => onClick?.(product) : undefined}
+        disabled={!clickable}
+        className="flex flex-col flex-1 text-left disabled:cursor-default"
+        aria-label={clickable ? `View ${product.title}` : undefined}
       >
         {/* image frame */}
         <div className="h-44 bg-gray-50 flex items-center justify-center p-3 dark:bg-slate-800">
@@ -39,7 +48,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
 
           <div className="mt-auto pt-2">
             <p className="text-gray-600 font-medium dark:text-slate-300">
-              ${product.price}
+              {priceText}
             </p>
           </div>
         </div>
@@ -48,17 +57,17 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
       {/* Add to Cart button */}
       <div className="p-4 pt-0">
         <button
-          onClick={(e) => {
-            e.stopPropagation();
+          type="button"
+          onClick={() =>
             addToCart({
               id: product.id,
               title: product.title,
               price: product.price,
               thumbnail: product.thumbnail,
-            });
-          }}
-          className=" w-full py-2 rounded-lg  bg-black text-white  hover:bg-gray-800  active:scale-95  
-          transition-all duration-200 dark:bg-white dark:text-black dark:hover:bg-gray-200"
+            })
+          }
+          className="w-full py-2 rounded-lg bg-black text-white hover:bg-gray-800 active:scale-95
+                     transition-all duration-200 dark:bg-white dark:text-black dark:hover:bg-gray-200"
         >
           Add to Cart
         </button>
